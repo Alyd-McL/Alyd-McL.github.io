@@ -1,19 +1,223 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>House</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        .grid {
+            display: grid;
+            width: 100vw;
+            height: 100vh;
+            grid-gap: 5px;
+            position: relative;
+            grid-template-columns: repeat(auto-fill, 30px);
+            grid-template-rows: repeat(auto-fill, 30px);
+        }
+
+        .block {
+            width: 30px;
+            height: 30px;
+            opacity: 0;
+            visibility: hidden;
+            animation: fadeIn 10s infinite, fadeOut 10s infinite;
+            animation-timing-function: ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                visibility: visible;
+            }
+            30% {
+                opacity: 0.5;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+            }
+            25% {
+                opacity: 0.75;
+            }
+            50% {
+                opacity: 0;
+            }
+            75% {
+                opacity: 0.75;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .alydblocks {
+            animation: none !important;
+        }
+
+    </style>
 </head>
 <body>
 
-<h1></h1>
-<p>.</p>
+<div class="grid">
+    <!-- Blocks will be added dynamically by JavaScript -->
+</div>
+
+<script>
+    const grid = document.querySelector('.grid');
+
+    // Block size and gap size
+    const blockSize = 30;  // Size of each block
+    const gapSize = 5;     // Size of the gap between blocks
+
+    // Calculate the number of blocks that fit horizontally and vertically
+    const horizontalBlocks = Math.floor((window.innerWidth + gapSize) / (blockSize + gapSize));
+    const verticalBlocks = Math.floor((window.innerHeight + gapSize) / (blockSize + gapSize));
+
+    const totalBlocks = horizontalBlocks * verticalBlocks;
+
+    // Set the grid-template-columns and grid-template-rows based on the block count
+    grid.style.gridTemplateColumns = `repeat(${horizontalBlocks}, ${blockSize}px)`;
+    grid.style.gridTemplateRows = `repeat(${verticalBlocks}, ${blockSize}px)`;
+
+    // Create a grid of blocks (background blocks)
+    for (let i = 0; i < totalBlocks; i++) {
+        const block = document.createElement('div');
+        block.classList.add('block');
+        grid.appendChild(block);
+    }
+
+    const blocks = document.querySelectorAll('.grid .block');
+
+    // Random color generator for background blocks
+    function getRandomColor() {
+        const r = Math.floor(Math.random() * 256);
+        const g = Math.floor(Math.random() * 256);
+        const b = Math.floor(Math.random() * 256);
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    // Seven-segment-like display for letters
+    const letters = {
+        A: [
+            [0,1,0],
+            [1,0,1],
+            [1,1,1],
+            [1,0,1],
+            [1,0,1]
+        ],
+        L: [
+            [1,0,0],
+            [1,0,0],
+            [1,0,0],
+            [1,0,0],
+            [1,1,1]
+        ],
+        Y: [
+            [1,0,1],
+            [1,0,1],
+            [0,1,0],
+            [0,1,0],
+            [0,1,0]
+        ],
+        D: [
+            [1,1,0],
+            [1,0,1],
+            [1,0,1],
+            [1,0,1],
+            [1,1,0]
+        ]
+    };
+
+    // Function to get the index in the grid based on row and col
+    function getBlockIndex(row, col) {
+        return row * horizontalBlocks + col;
+    }
+
+    // Function to animate blocks with random delays and colors
+    function animateBlocks() {
+        blocks.forEach((block, index) => {
+            const randomDelay = Math.random() * 10;  // Random delay between 0 and 10 seconds (slower)
+            block.style.animationDelay = `${randomDelay}s`;
+
+            block.style.backgroundColor = getRandomColor();
+            setTimeout(() => {
+                block.style.visibility = 'visible'; // Make the block visible after the delay
+            }, randomDelay * 1000);
+        });
+
+        // Function to render each letter with multiple blocks
+        function renderLetter(letter, rowOffset, colOffset) {
+            const letterGrid = letters[letter];
+
+            letterGrid.forEach((row, r) => {
+                row.forEach((cell, c) => {
+                    if (cell === 1) {
+                        const blockIndex = getBlockIndex(rowOffset + r, colOffset + c);
+                        const letterBlock = blocks[blockIndex];
+                        letterBlock.style.backgroundColor = 'white'; // Make "A L Y D" white
+                        letterBlock.classList.add('alydblocks');
+                        const randomDelay = Math.random() * 10;  // Random delay for the "A L Y D" blocks (slower)
+                        letterBlock.style.animationDelay = `${randomDelay}s`;
+
+                        setTimeout(() => {
+                            letterBlock.style.visibility = 'visible'; // Make word blocks visible after delay
+                        }, randomDelay * 1000);
+                    }
+                });
+            });
+        }
+
+        // Calculate the center position of the word "A L Y D"
+        const wordWidth = 4 * 3 + 3;  // Width of the word "A L Y D" (4 letters * 3 blocks per letter and 3 spaces)
+        const centerX = Math.floor(horizontalBlocks / 2) - Math.floor(wordWidth / 2); // Adjusted center for word
+        const centerY = Math.floor(verticalBlocks / 2) - 2; // Vertically center it
+
+        // Place the word "A L Y D" in the center of the grid
+        renderLetter('A', centerY, centerX);
+        renderLetter('L', centerY, centerX + 4);  // Adding 4 blocks space between letters
+        renderLetter('Y', centerY, centerX + 8);
+        renderLetter('D', centerY, centerX + 12);
+    }
+
+    // Trigger animation on page load
+    window.onload = animateBlocks;
+
+    // Function to randomly change color only after the block fades out (when it reaches opacity: 0)
+    blocks.forEach(block => {
+        block.addEventListener('animationiteration', () => {
+            // After the block fades out (when opacity is 0), change the color before fading in
+            if (block.style.opacity == "0") {
+                block.style.backgroundColor = getRandomColor(); // Change color immediately after fading out
+            }
+        });
+    });
+
+    // Recalculate block sizes and positions on window resize
+    window.onresize = () => {
+        location.reload();
+    };
+</script>
 
 </body>
 </html>
